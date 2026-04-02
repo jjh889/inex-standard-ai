@@ -1,0 +1,71 @@
+{
+  "securityPolicy": {
+    "version": "1.1",
+    "description": "AI 개발 표준 보안 정책",
+
+    "sensitiveDataControl": {
+      "description": "민감 정보 통제 정책",
+      "prohibitedInPrompt": [
+        "API Key",
+        "DB 접속 정보 (호스트, 포트, 비밀번호)",
+        "개인정보 (KYC 데이터)",
+        "지갑 Private Key",
+        "인증 토큰 (JWT Secret 등)"
+      ],
+      "prohibitedInLog": [
+        "API Key",
+        "DB 접속 정보",
+        "개인정보",
+        "지갑 Private Key"
+      ],
+      "allowedInPrompt": [
+        "DB 스키마 구조 (민감 데이터 값 제외)",
+        "API 엔드포인트 명세",
+        "코드 구조 및 로직"
+      ]
+    },
+
+    "financialLogicIsolation": {
+      "description": "금융 로직 격리 정책",
+      "scope": [
+        "지갑(Wallet) 연동",
+        "원화(KRW) 입출금",
+        "가상자산 전송",
+        "KYC/AML 데이터 처리",
+        "잔액 계산 및 변경"
+      ],
+      "requirements": {
+        "humanCrossCheck": 2,
+        "transactionalRequired": true,
+        "rollbackRequired": true,
+        "tag": "FINANCIAL"
+      }
+    },
+
+    "dependencyControl": {
+      "description": "의존성 검증 정책",
+      "aiCanAddDependency": false,
+      "requireHumanApproval": true,
+      "approvalProcess": "기획 단계에서 Human 승인 후 진행"
+    },
+
+    "reviewChecklist": {
+      "owasp": [
+        "SQL Injection",
+        "XSS (Cross-Site Scripting)",
+        "Broken Authentication",
+        "Sensitive Data Exposure",
+        "Broken Access Control",
+        "Security Misconfiguration",
+        "Insecure Deserialization"
+      ],
+      "financial": [
+        "Double Spending 가능성",
+        "트랜잭션 원자성 (Atomicity)",
+        "잔액 불일치 (Race Condition)",
+        "권한 탈취 (Privilege Escalation)",
+        "VASP 기준 자산 무결성"
+      ]
+    }
+  }
+}

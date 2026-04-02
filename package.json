@@ -1,0 +1,30 @@
+{
+  "name": "@anthropic-standard/ai-dev-standard",
+  "version": "1.1.0",
+  "description": "AI Development Standard Framework - AI Agent 기반 개발 자동화 프레임워크",
+  "main": "ai-system/harness/runner.js",
+  "scripts": {
+    "start": "node ai-system/harness/runner.js",
+    "start:task": "node ai-system/harness/runner.js --task",
+    "retry": "node ai-system/harness/retry.js",
+    "validate": "node ai-system/harness/validator.js",
+    "test": "echo \"No sample tests yet\" && exit 0"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "development-standard",
+    "codex",
+    "automation"
+  ],
+  "author": "AI Standard Dev Team",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0"
+  }
+}
