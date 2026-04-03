@@ -4,7 +4,7 @@
  * Jira API 연동 모듈.
  * Task 생성, 상태 전이, 서브 태스크 자동 생성 등을 처리한다.
  *
- * 상태 흐름: TODO → AI_DEV → AI_TEST → AI_REVIEW → DONE
+ * 상태 흐름: TODO → PLAN_REVIEW → AI_DEV → AI_TEST → AI_REVIEW → DONE
  */
 
 const axios = require('axios');

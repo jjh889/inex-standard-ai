@@ -74,18 +74,19 @@ Claude      Codex         Harness
 
 - **역할**: 3-Agent 오케스트레이션, CI 테스트 검증, 피드백 라우팅, 상태 관리
 - **피드백 라우팅**: 실행/CI 실패 → Codex에게, 리뷰 실패 → Claude에게
-- **상태**: TODO → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE → FAILED
+- **상태**: TODO → PLAN_REVIEW → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE → FAILED
 
 ## 5. 개발 프로세스 (3-Agent)
 
 1. **Goal 정의** — PM/개발자가 목표 설정
 2. **Task 분해** — Planner Agent가 Jira 서브 태스크 생성
-3. **설계 + 코드 생성** — Claude가 API/로직 설계 및 코드 생성
-4. **실행 + 수정** — Codex가 빌드/실행하고 오류 수정
-5. **CI 검증** — Harness가 GitLab CI 파이프라인 실행 및 검증
-6. **코드 리뷰** — Codex가 코드 리뷰 수행 ([FINANCIAL]은 적대적 리뷰)
-7. **피드백 루프** — 리뷰 REJECT → Claude 재설계 / 실행 실패 → Codex 재수정 / 3회 실패 → FAILED
-8. **배포** — Human 승인 후 Merge, Slack/Jira 알림
+3. **실행 계획 확인 (PLAN_REVIEW)** — AI가 실행 계획을 생성하고 Human이 확인/승인. 거부 시 즉시 중단
+4. **설계 + 코드 생성** — Claude가 API/로직 설계 및 코드 생성
+5. **실행 + 수정** — Codex가 빌드/실행하고 오류 수정
+6. **CI 검증** — Harness가 GitLab CI 파이프라인 실행 및 검증
+7. **코드 리뷰** — Codex가 코드 리뷰 수행 ([FINANCIAL]은 적대적 리뷰)
+8. **피드백 루프** — 리뷰 REJECT → Claude 재설계 / 실행 실패 → Codex 재수정 / 3회 실패 → FAILED
+9. **배포** — Human 승인 후 Merge, Slack/Jira 알림
 
 ## 6. GitLab 규칙
 

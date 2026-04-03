@@ -20,6 +20,9 @@
                                       │
                                 Task 분해 + Jira 서브태스크 생성
                                       │
+                              [PLAN_REVIEW]
+                          AI 실행 계획 생성 → Human 확인/승인
+                                      │
          ┌────────────────────────────┼────────────────────────────┐
          ↓                            ↓                            ↓
      Claude                        Codex                       Harness
@@ -44,23 +47,26 @@
 ### 상태 전이
 
 ```
-TODO → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE → MERGED
-         ↑          ↑           │         │
-         │          └───────────┘         │  실행/CI 실패
-         │          (Codex 재수정)         │  → Codex에게 피드백
-         │                                │
-         └────────────────────────────────┘  리뷰 REJECT
-                                             → Claude에게 피드백
-                                FAILED ← 3회 초과
+TODO → PLAN_REVIEW → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE → MERGED
+       (AI 계획 확인)  (Claude)   (Codex)    (Harness)  (Codex)  (Human)
+                ↑          ↑           │         │
+                │          └───────────┘         │  실행/CI 실패
+                │          (Codex 재수정)         │  → Codex에게 피드백
+                │                                │
+                └────────────────────────────────┘  리뷰 REJECT
+                                                    → Claude에게 피드백
+       PLAN 거부 → FAILED                 FAILED ← 3회 초과
 ```
 
 ### 핵심: 피드백 라우팅
 
 | 실패 유형 | 피드백 대상 | 이유 |
 |-----------|------------|------|
+| PLAN 거부 | **중단** | Human이 실행 계획을 거부 → FAILED |
 | Codex 실행 실패 | **Codex** | 빌드/런타임 오류 → 실행 레벨 수정 |
 | CI 테스트 실패 | **Codex** | 테스트 코드/로직 수정 |
 | 리뷰 REJECT | **Claude** | 설계/아키텍처 문제 → 재설계 |
+| 같은 에러 2회 반복 | **Claude** | 에스컬레이션 → 설계 레벨 재검토 |
 
 ---
 

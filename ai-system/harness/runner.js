@@ -47,6 +47,29 @@ class HarnessRunner {
     this.log(task.id, 'START', { state: this.currentState });
 
     try {
+      // ── Step 0: PLAN_REVIEW — AI 실행 계획 확인 ──
+      if (!task.planApproved) {
+        this.transition(task.id, 'PLAN_REVIEW');
+        console.log(`[Harness] Task ${task.id} AI 실행 계획 생성. Human 확인 대기.`);
+        this.log(task.id, 'PLAN_REVIEW', { awaiting: true });
+
+        const isFinancial = task.tags?.includes('FINANCIAL');
+        const requiredApprovals = isFinancial ? 2 : 1;
+        const planApproved = await this.requestHumanApproval(task, null, requiredApprovals);
+
+        if (!planApproved) {
+          this.transition(task.id, 'FAILED');
+          console.log(`[Harness] Task ${task.id} 실행 계획 거부. 중단.`);
+          const result = { success: false, state: 'FAILED', task: task.id, reason: 'plan_rejected' };
+          this.audit.endTask(result);
+          return result;
+        }
+
+        task.planApproved = true;
+        console.log(`[Harness] Task ${task.id} 실행 계획 승인. 워크플로우 진행.`);
+        this.log(task.id, 'PLAN_APPROVED');
+      }
+
       // ── Step 1: Claude — 설계 + 코드 생성 ──
       this.transition(task.id, 'DESIGN');
       const claudeResult = await this.executeClaude(task, agents.claude);

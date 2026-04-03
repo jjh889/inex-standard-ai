@@ -71,13 +71,15 @@ codex result
 
 ## 상태 전이 역할
 ```
-IN_PROGRESS (Claude 코드 생성 완료)
-     ↓
-CODEX_EXEC (Codex 실행 + 수정)
-     ↓ 성공
-CI_TEST (Harness가 CI 테스트 실행)
-     ↓ 실패
-CODEX_EXEC (Codex 재수정, 최대 3회)
+TODO → PLAN_REVIEW (AI 실행 계획 → Human 확인)
+            ↓ 승인
+     DESIGN (Claude 코드 생성)
+            ↓
+     CODEX_EXEC (Codex 실행 + 수정)
+            ↓ 성공
+     CI_TEST (Harness가 CI 테스트 실행)
+            ↓ 실패
+     CODEX_EXEC (Codex 재수정, 최대 3회)
 ```
 
 ## Claude ↔ Codex 협업 규칙

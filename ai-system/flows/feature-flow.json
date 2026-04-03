@@ -12,9 +12,25 @@
       "description": "Task가 생성되어 대기 중",
       "transitions": [
         {
-          "to": "DESIGN",
+          "to": "PLAN_REVIEW",
           "trigger": "task_start",
           "agent": "harness"
+        }
+      ]
+    },
+    "PLAN_REVIEW": {
+      "description": "AI 실행 계획을 Human이 확인/승인하는 단계",
+      "agent": "human",
+      "transitions": [
+        {
+          "to": "DESIGN",
+          "trigger": "plan_approved",
+          "agent": "human"
+        },
+        {
+          "to": "FAILED",
+          "trigger": "plan_rejected",
+          "agent": "human"
         }
       ]
     },

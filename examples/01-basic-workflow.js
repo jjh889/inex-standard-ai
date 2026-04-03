@@ -8,7 +8,7 @@
  *   node examples/01-basic-workflow.js
  *
  * 상태 전이:
- *   TODO → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE
+ *   TODO → PLAN_REVIEW → DESIGN → CODEX_EXEC → CI_TEST → REVIEW → DONE
  */
 
 const { HarnessRunner } = require('../ai-system/harness/runner');

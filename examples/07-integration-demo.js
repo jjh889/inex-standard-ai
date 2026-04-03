@@ -30,6 +30,12 @@ async function main() {
   sim.log('jira', '서브태스크 생성', `${taskId}-1: API 설계`);
   sim.log('jira', '서브태스크 생성', `${taskId}-2: 서비스 로직`);
 
+  // ── Step 1.5: PLAN_REVIEW ──
+  console.log('\n━━ Step 1.5: AI 실행 계획 → Human 확인 ━━━━━━━━━━━━━━━\n');
+  sim.log('harness', '계획 생성', 'AI 실행 계획 8단계 생성');
+  sim.log('harness', '계획 대기', `${taskId} → PLAN_REVIEW`);
+  sim.log('human', '계획 승인', '실행 계획 확인 완료 → 진행');
+
   // ── Step 2: Claude → 설계 + 코드 생성 ──
   console.log('\n━━ Step 2: Claude → 설계 + 코드 생성 ━━━━━━━━━━━━━━━━━━\n');
   sim.log('jira', '상태 전이', `${taskId} → DESIGN`);
@@ -75,12 +81,13 @@ async function main() {
   console.log('\n┌─── 3-Agent 타임라인 요약 ─────────────────────────────┐');
   console.log('│                                                        │');
   console.log('│  1. Planner    → Jira 서브태스크 생성                   │');
-  console.log('│  2. Claude     → 설계 + 코드 생성                      │');
-  console.log('│  3. Codex      → 빌드 + 실행 + 수정 → GitLab 커밋/MR   │');
-  console.log('│  4. Harness    → CI 파이프라인 테스트 + 검증             │');
-  console.log('│  5. Codex      → 코드 리뷰 → GitLab 코멘트             │');
-  console.log('│  6. Human      → 최종 승인                             │');
-  console.log('│  7. Harness    → Merge + 배포 + Slack/Jira 알림        │');
+  console.log('│  2. PLAN_REVIEW → AI 실행 계획 → Human 확인/승인       │');
+  console.log('│  3. Claude     → 설계 + 코드 생성                      │');
+  console.log('│  4. Codex      → 빌드 + 실행 + 수정 → GitLab 커밋/MR   │');
+  console.log('│  5. Harness    → CI 파이프라인 테스트 + 검증             │');
+  console.log('│  6. Codex      → 코드 리뷰 → GitLab 코멘트             │');
+  console.log('│  7. Human      → 최종 승인                             │');
+  console.log('│  8. Harness    → Merge + 배포 + Slack/Jira 알림        │');
   console.log('│                                                        │');
   console.log('└────────────────────────────────────────────────────────┘');
 }
