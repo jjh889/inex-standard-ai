@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Dev Standard Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <h1>AI Dev Standard <span class="version">v2.0</span></h1>
+      <p class="subtitle">3-Agent Workflow Dashboard</p>
+    </div>
+    <div class="header-right">
+      <div class="agent-badges">
+        <span class="badge claude">Claude</span>
+        <span class="arrow">&rarr;</span>
+        <span class="badge codex">Codex</span>
+        <span class="arrow">&rarr;</span>
+        <span class="badge harness">Harness</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main>
+    <!-- Left Panel: Task 생성 + 목록 -->
+    <aside class="panel task-panel">
+      <div class="panel-header">
+        <h2>Tasks</h2>
+        <button id="newTaskBtn" class="btn btn-primary" onclick="openNewTaskModal()">+ New Task</button>
+      </div>
+      <div class="demo-launcher">
+        <div class="demo-title">Demo Scenarios</div>
+        <div id="scenarioButtons" class="scenario-buttons"></div>
+      </div>
+      <div class="divider"></div>
+      <div id="taskList" class="task-list">
+        <div class="empty-state">위 시나리오를 선택하여 데모를 시작하세요</div>
+      </div>
+    </aside>
+
+    <!-- Center: 워크플로우 파이프라인 -->
+    <section class="panel pipeline-panel">
+      <div class="panel-header">
+        <h2>Pipeline</h2>
+        <span id="pipelineTaskId" class="task-tag">-</span>
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-stage" id="stage-TODO" data-stage="TODO">
+          <div class="stage-icon">📋</div>
+          <div class="stage-label">TODO</div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-PLAN_REVIEW" data-stage="PLAN_REVIEW">
+          <div class="stage-icon">📝</div>
+          <div class="stage-label">Plan<br><small>계획 확인</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-DESIGN" data-stage="DESIGN">
+          <div class="stage-icon">🧠</div>
+          <div class="stage-label">Claude<br><small>설계+생성</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-CODEX_EXEC" data-stage="CODEX_EXEC">
+          <div class="stage-icon">⚡</div>
+          <div class="stage-label">Codex<br><small>실행+수정</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-CI_TEST" data-stage="CI_TEST">
+          <div class="stage-icon">🔧</div>
+          <div class="stage-label">Harness<br><small>테스트+검증</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-REVIEW" data-stage="REVIEW">
+          <div class="stage-icon">🔍</div>
+          <div class="stage-label">Codex<br><small>코드 리뷰</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-DONE" data-stage="DONE">
+          <div class="stage-icon">👤</div>
+          <div class="stage-label">Human<br><small>승인 대기</small></div>
+        </div>
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-stage" id="stage-MERGED" data-stage="MERGED">
+          <div class="stage-icon">🚀</div>
+          <div class="stage-label">MERGED</div>
+        </div>
+      </div>
+
+      <!-- 피드백 루프 표시 -->
+      <div id="feedbackLoop" class="feedback-loop hidden">
+        <div class="feedback-arrow"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+      </div>
+
+      <!-- Plan Review 패널 -->
+      <div id="planPanel" class="plan-panel hidden">
+        <div class="plan-header">
+          <h3>📝 AI 실행 계획</h3>
+          <span class="plan-subtitle">아래 계획을 확인하고 승인해주세요</span>
+        </div>
+        <div id="planContent" class="plan-content"></div>
+        <div class="plan-actions">
+          <button class="btn btn-approve" onclick="approvePlan()">계획 승인 → 실행</button>
+          <button class="btn btn-reject" onclick="rejectPlan()">거부 (중단)</button>
+        </div>
+      </div>
+
+      <!-- 승인 패널 -->
+      <div id="approvalPanel" class="approval-panel hidden">
+        <div class="approval-header">
+          <h3>Human 승인 요청</h3>
+        </div>
+        <div id="approvalContent" class="approval-content"></div>
+        <div class="approval-actions">
+          <button class="btn btn-approve" onclick="approveTask()">Approve</button>
+          <button class="btn btn-reject" onclick="rejectTask()">Reject</button>
+        </div>
+      </div>
+
+      <!-- Agent 출력 카드 -->
+      <div class="agent-outputs">
+        <div class="output-card" id="claudeCard">
+          <div class="output-header claude-bg">🧠 Claude Output</div>
+          <pre id="claudeCode" class="output-code">대기 중...</pre>
+        </div>
+        <div class="output-card" id="codexCard">
+          <div class="output-header codex-bg">⚡ Codex Result</div>
+          <pre id="codexResult" class="output-code">대기 중...</pre>
+        </div>
+        <div class="output-card" id="reviewCard">
+          <div class="output-header review-bg">🔍 Review</div>
+          <pre id="reviewResult" class="output-code">대기 중...</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: 실시간 로그 -->
+    <aside class="panel log-panel">
+      <div class="panel-header">
+        <h2>Live Logs</h2>
+        <button class="btn btn-small" onclick="clearLogs()">Clear</button>
+      </div>
+      <div id="logStream" class="log-stream">
+        <div class="log-entry system">시스템 준비 완료. Task를 생성하세요.</div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- New Task Modal -->
+  <div id="newTaskModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>새 Task 생성</h3>
+      <div class="form-group">
+        <label>Task 설명</label>
+        <input type="text" id="taskDesc" placeholder="예: XKRW 잔액 조회 API 구현" autofocus>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="taskFinancial">
+          [FINANCIAL] 금융 로직 포함
+        </label>
+      </div>
+      <div class="form-group">
+        <label>프리셋</label>
+        <div class="preset-buttons">
+          <button class="btn btn-small" onclick="setPreset('잔액 조회 API 구현', false)">잔액 조회</button>
+          <button class="btn btn-small" onclick="setPreset('KRW 출금 API 구현', true)">출금 (금융)</button>
+          <button class="btn btn-small" onclick="setPreset('주문 내역 조회 API', false)">주문 조회</button>
+          <button class="btn btn-small" onclick="setPreset('가상자산 입금 처리', true)">입금 (금융)</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="submitTask()">실행</button>
+        <button class="btn" onclick="closeModal()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

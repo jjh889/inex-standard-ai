@@ -1,0 +1,14 @@
+{
+  "name": "ai-standard-dashboard",
+  "version": "1.0.0",
+  "description": "AI Dev Standard 3-Agent Dashboard - 실시간 워크플로우 시각화 + 승인 콘솔",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "socket.io": "^4.7.0"
+  }
+}
