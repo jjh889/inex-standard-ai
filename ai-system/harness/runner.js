@@ -17,6 +17,7 @@
 
 require('dotenv').config();
 
+const readline = require('readline');
 const { SmartRetryManager } = require('./smart-retry');
 const { FeedbackInjector } = require('./feedback-injector');
 const { Validator } = require('./validator');
@@ -74,14 +75,33 @@ class HarnessRunner {
         return this.handleFailure(task, agents, 'review', reviewResult);
       }
 
-      // ── Step 5: 성공 ──
+      // ── Step 5: Human 승인 ──
       this.transition(task.id, 'DONE');
       console.log(`[Harness] Task ${task.id} 전체 파이프라인 통과. Human 승인 대기 중.`);
       this.log(task.id, 'AWAITING_HUMAN_APPROVAL');
 
-      const result = { success: true, state: 'DONE', task: task.id };
-      this.audit.endTask(result);
-      return result;
+      const isFinancial = task.tags?.includes('FINANCIAL');
+      const requiredApprovals = isFinancial ? 2 : 1;
+      const approved = await this.requestHumanApproval(task, reviewResult, requiredApprovals);
+
+      if (approved) {
+        this.transition(task.id, 'MERGED');
+        console.log(`[Harness] Task ${task.id} Human 승인 완료. MERGED.`);
+        this.log(task.id, 'HUMAN_APPROVED');
+        this.audit.logHarness('human_approval', { approved: true, requiredApprovals });
+
+        const result = { success: true, state: 'MERGED', task: task.id };
+        this.audit.endTask(result);
+        return result;
+      } else {
+        console.log(`[Harness] Task ${task.id} Human 거부. REJECTED.`);
+        this.log(task.id, 'HUMAN_REJECTED');
+        this.audit.logHarness('human_approval', { approved: false });
+
+        const result = { success: false, state: 'DONE', task: task.id, reason: 'human_rejected' };
+        this.audit.endTask(result);
+        return result;
+      }
     } catch (error) {
       console.error(`[Harness] Task ${task.id} 실행 중 오류:`, error.message);
       this.transition(task.id, 'FAILED');
@@ -264,6 +284,82 @@ class HarnessRunner {
 
     this.log(task.id, 'RETRY', { attempt: retryCount, type: failureType, escalated: !!escalation });
     return this.run(task, agents);
+  }
+
+  /**
+   * Human 승인을 CLI에서 요청한다.
+   * [FINANCIAL] 태그 시 2인 승인이 필요하다.
+   *
+   * @param {Object} task
+   * @param {Object} reviewResult - 리뷰 결과 (요약 표시용)
+   * @param {number} requiredApprovals - 필요 승인 수 (일반: 1, 금융: 2)
+   * @returns {boolean} 승인 여부
+   */
+  async requestHumanApproval(task, reviewResult, requiredApprovals) {
+    const isFinancial = task.tags?.includes('FINANCIAL');
+
+    console.log('');
+    console.log('┌─── Human 승인 요청 ──────────────────────────────────┐');
+    console.log(`│ Task:    ${task.id}`);
+    console.log(`│ 설명:    ${task.description}`);
+    if (isFinancial) {
+      console.log('│ ⚠️  [FINANCIAL] 금융 로직 포함');
+    }
+    console.log('│');
+    console.log(`│ 리뷰 결과: ${reviewResult?.verdict || 'APPROVE'}`);
+    if (reviewResult?.issues?.length > 0) {
+      console.log(`│ 이슈:     ${reviewResult.issues.length}건`);
+      reviewResult.issues.forEach((issue) => {
+        console.log(`│   - [${issue.severity}] ${issue.description}`);
+      });
+    }
+    if (reviewResult?.summary) {
+      console.log(`│ 요약:     ${reviewResult.summary}`);
+    }
+    console.log('│');
+    console.log(`│ 필요 승인: ${requiredApprovals}명`);
+    console.log('└────────────────────────────────────────────────────────┘');
+
+    // stdin에서 줄 단위로 읽기 위해 라인 버퍼를 준비한다.
+    const lines = await this.readStdinLines(requiredApprovals);
+
+    for (let i = 0; i < requiredApprovals; i++) {
+      const label = requiredApprovals > 1 ? ` (${i + 1}/${requiredApprovals})` : '';
+      process.stdout.write(`\n[승인${label}] Merge를 승인하시겠습니까? (y/n): `);
+
+      const answer = (lines[i] || '').trim().toLowerCase();
+      console.log(answer);
+
+      if (answer === 'y' || answer === 'yes') {
+        console.log(`  ✅ 승인 ${i + 1}/${requiredApprovals} 완료`);
+      } else {
+        console.log(`  ❌ 거부됨`);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * stdin에서 n줄을 읽는다. (인터랙티브 / 파이프 모두 지원)
+   */
+  readStdinLines(count) {
+    return new Promise((resolve) => {
+      const rl = readline.createInterface({ input: process.stdin });
+      const lines = [];
+
+      rl.on('line', (line) => {
+        lines.push(line);
+        if (lines.length >= count) {
+          rl.close();
+        }
+      });
+
+      rl.on('close', () => {
+        resolve(lines);
+      });
+    });
   }
 
   /**
